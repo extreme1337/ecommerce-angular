@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormGroupDirective } from '@angular/forms';
+import { Country } from 'src/app/common/country';
+import { State } from 'src/app/common/state';
 import { EcommerceFormService } from 'src/app/service/ecommerce-form.service';
 
 @Component({
@@ -16,6 +18,11 @@ export class CheckoutComponent implements OnInit {
 
   creditCardYears: number[] = [];
   creditCardMonths: number[] = [];
+
+  countries: Country[] = [];
+
+  shippingAddressState: State[] = [];
+  billingAddressState: State[] = [];
 
   constructor(private formBuilder: FormBuilder, private ecommerceFormService: EcommerceFormService) { }
 
@@ -65,6 +72,13 @@ export class CheckoutComponent implements OnInit {
         this.creditCardYears=data;
       }
     );
+
+    this.ecommerceFormService.getCountries().subscribe(
+      data => {
+        console.log("Retrived countries: "+JSON.stringify(data));
+        this.countries = data;
+      }
+    )
   }
 
 
@@ -103,6 +117,27 @@ export class CheckoutComponent implements OnInit {
         this.creditCardMonths = data;
       }
     )
+  }
+
+  getStates(formGroupName: string){
+    const formGrop = this.checkoutFormGroup.get(formGroupName);
+    const countryCode = formGrop.value.country.code;
+    const countryName = formGrop.value.country.name;
+
+    console.log(`{formGroupName} country code: ${countryCode}`);
+    console.log(`{formGroupName} country name: ${countryName}`);
+
+    this.ecommerceFormService.getStates(countryCode).subscribe(
+      data =>{
+        if(formGroupName === 'shippingAddress'){
+          this.shippingAddressState = data;
+        }else{
+          this.billingAddressState = data;
+        }
+
+        formGrop.get('state').setValue(data[0]);
+      }
+    );
   }
 
 }
